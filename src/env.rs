@@ -19,6 +19,14 @@ pub fn password_store_dir() -> Result<PathBuf, Error> {
     }
 }
 
+pub fn password_store_file(name: &str) -> Result<PathBuf, Error> {
+    let mut pbuf = password_store_dir()?;
+    let mut file = name.to_string();
+    file.push_str(".gpg");
+    pbuf.push(&file);
+    Ok(pbuf)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -48,5 +56,13 @@ mod test {
         let result = password_store_dir();
         assert!(result.is_err());
         assert_eq!(format!("{}", result.unwrap_err()), "invalid environment: HOME");
+    }
+
+    #[test]
+    fn password_store_file_example_com() {
+        env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
+        let result = password_store_file("example.com");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), PathBuf::from("/tmp/password-store/example.com.gpg"));
     }
 }
