@@ -12,8 +12,16 @@ struct AikotCommand {
 #[derive(FromArgs, Debug)]
 #[argh(subcommand)]
 enum AikotSubcommand {
+    Clip(ClipCommand),
     List(ListCommand),
     Show(ShowCommand),
+}
+
+#[derive(FromArgs, Debug)]
+#[argh(subcommand, name = "clip", description = "Copy password to clipboard")]
+struct ClipCommand {
+    #[argh(positional)]
+    name: String,
 }
 
 #[derive(FromArgs, Debug)]
@@ -30,6 +38,7 @@ struct ShowCommand {
 fn main() {
     let cmd: AikotCommand = argh::from_env();
     let result = match cmd.subcmd {
+        AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&name),
         AikotSubcommand::List(_) => cmd::cmd_list(),
         AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&name),
     };

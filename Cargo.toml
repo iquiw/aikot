@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 argh = "^0.1.3"
 failure = "^0.1.8"
+
+[target.'cfg(windows)'.dependencies]
+winrt = "^0.7.1"
