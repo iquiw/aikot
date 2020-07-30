@@ -25,11 +25,11 @@ struct ClipCommand {
 }
 
 #[derive(FromArgs, Debug)]
-#[argh(subcommand, name = "list", description = "List passwords")]
+#[argh(subcommand, name = "list", description = "List secrets")]
 struct ListCommand {}
 
 #[derive(FromArgs, Debug)]
-#[argh(subcommand, name = "show", description = "Show existing password")]
+#[argh(subcommand, name = "show", description = "Display secret contents without password")]
 struct ShowCommand {
     #[argh(positional)]
     name: String,
