@@ -26,7 +26,10 @@ struct ClipCommand {
 
 #[derive(FromArgs, Debug)]
 #[argh(subcommand, name = "list", description = "List secrets")]
-struct ListCommand {}
+struct ListCommand {
+    #[argh(positional)]
+    pattern: Option<String>,
+}
 
 #[derive(FromArgs, Debug)]
 #[argh(subcommand, name = "show", description = "Display secret contents without password")]
@@ -39,7 +42,7 @@ fn main() {
     let cmd: AikotCommand = argh::from_env();
     let result = match cmd.subcmd {
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&name),
-        AikotSubcommand::List(_) => cmd::cmd_list(),
+        AikotSubcommand::List(ListCommand { pattern }) => cmd::cmd_list(pattern.as_deref()),
         AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&name),
     };
     if let Err(err) = result {

@@ -4,12 +4,12 @@ use failure::Error;
 
 use crate::env::password_store_dir;
 
-pub fn cmd_list() -> Result<(), Error> {
+pub fn cmd_list(pattern: Option<&str>) -> Result<(), Error> {
     let dir = password_store_dir()?;
-    list_dir(&dir, None)
+    list_dir(&dir, pattern, None)
 }
 
-fn list_dir<P>(dir: P, prefix_opt: Option<&PathBuf>) -> Result<(), Error>
+fn list_dir<P>(dir: P, pattern: Option<&str>, prefix_opt: Option<&PathBuf>) -> Result<(), Error>
 where
     P: AsRef<Path>,
 {
@@ -24,15 +24,18 @@ where
                         PathBuf::new()
                     };
                     pbuf.push(p);
-                    list_dir(&path, Some(&pbuf))?;
+                    list_dir(&path, pattern, Some(&pbuf))?;
                 }
             } else if let Some(ext) = path.extension() {
                 if ext == "gpg" {
                     if let Some(name) = path.file_stem() {
-                        if let Some(prefix) = prefix_opt {
-                            println!("{}/{}", prefix.display(), name.to_string_lossy());
+                        let secret = if let Some(prefix) = prefix_opt {
+                            format!("{}/{}", prefix.display(), name.to_string_lossy())
                         } else {
-                            println!("{}", name.to_string_lossy());
+                            format!("{}", name.to_string_lossy())
+                        };
+                        if pattern.is_none() || secret.contains(pattern.unwrap()) {
+                            println!("{}", secret);
                         }
                     }
                 }
