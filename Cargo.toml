@@ -10,5 +10,9 @@ edition = "2018"
 argh = "^0.1.3"
 failure = "^0.1.8"
 
+[target.'cfg(unix)'.dependencies]
+libc = "^0.2.74"
+x11-clipboard = "^0.5.1"
+
 [target.'cfg(windows)'.dependencies]
 winrt = "^0.7.1"
