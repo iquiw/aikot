@@ -13,4 +13,7 @@ pub enum AikotError {
 
     #[fail(display = "password file not found: {}", name)]
     PassNotFound { name: String },
+
+    #[fail(display = "recipient not found")]
+    RecipientNotFound,
 }
