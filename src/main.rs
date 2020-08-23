@@ -1,6 +1,8 @@
 use argh::FromArgs;
+use failure::Error;
 
 use aikot::cmd;
+use aikot::env::AikotEnv;
 
 #[derive(FromArgs, Debug)]
 #[argh(description = "Aikot password manager")]
@@ -40,21 +42,31 @@ struct ListCommand {
 }
 
 #[derive(FromArgs, Debug)]
-#[argh(subcommand, name = "show", description = "Display secret contents without password")]
+#[argh(
+    subcommand,
+    name = "show",
+    description = "Display secret contents without password"
+)]
 struct ShowCommand {
     #[argh(positional)]
     name: String,
 }
 
 fn main() {
-    let cmd: AikotCommand = argh::from_env();
-    let result = match cmd.subcmd {
-        AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&name),
-        AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&name),
-        AikotSubcommand::List(ListCommand { pattern }) => cmd::cmd_list(pattern.as_deref()),
-        AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&name),
-    };
-    if let Err(err) = result {
+    if let Err(err) = aikot_main() {
         println!("{}", err);
+    }
+}
+
+fn aikot_main() -> Result<(), Error> {
+    let cmd: AikotCommand = argh::from_env();
+    let aikot_env = AikotEnv::from_env()?;
+    match cmd.subcmd {
+        AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
+        AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
+        AikotSubcommand::List(ListCommand { pattern }) => {
+            cmd::cmd_list(&aikot_env, pattern.as_deref())
+        }
+        AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&aikot_env, &name),
     }
 }

@@ -1,12 +1,12 @@
 use failure::Error;
 
 use crate::clipboard::set_clip;
-use crate::env::password_store_file;
+use crate::env::AikotEnv;
 use crate::err::AikotError;
 use crate::gpg::decrypt;
 
-pub fn cmd_clip(name: &str) -> Result<(), Error> {
-    let file = password_store_file(name)?;
+pub fn cmd_clip(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
+    let file = aikot_env.password_store_file(name)?;
     if file.is_file() {
         let pass = decrypt(&file)?;
         if let Some(password) = pass.lines().next() {

@@ -1,11 +1,49 @@
 use std::env;
 use std::ffi::OsString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use failure::Error;
 
 use crate::err::AikotError;
 use crate::io::read_file;
+
+pub struct AikotEnv {
+    base_dir: PathBuf,
+}
+
+impl AikotEnv {
+    pub fn from_env() -> Result<Self, Error> {
+        let base_dir = password_store_dir()?;
+        Ok(AikotEnv { base_dir })
+    }
+
+    pub fn base_dir(&self) -> &Path {
+        &self.base_dir
+    }
+
+    pub fn get_recipients(&self) -> Result<Vec<String>, Error> {
+        let mut path = self.base_dir.clone();
+        path.push(".gpg-id");
+        if path.is_file() {
+            let recs = read_file(&path)?
+                .lines()
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>();
+            if !recs.is_empty() {
+                return Ok(recs);
+            }
+        }
+        Err(AikotError::RecipientNotFound)?
+    }
+
+    pub fn password_store_file(&self, name: &str) -> Result<PathBuf, Error> {
+        let mut pbuf = self.base_dir.clone();
+        let mut file = name.to_string();
+        file.push_str(".gpg");
+        pbuf.push(&file);
+        Ok(pbuf)
+    }
+}
 
 pub fn editor_cmd() -> Result<OsString, Error> {
     if let Some(editor) = env::var_os("EDITOR") {
@@ -17,22 +55,7 @@ pub fn editor_cmd() -> Result<OsString, Error> {
     }
 }
 
-pub fn get_recipients() -> Result<Vec<String>, Error> {
-    let mut path = password_store_dir()?;
-    path.push(".gpg-id");
-    if path.is_file() {
-        let recs = read_file(&path)?
-            .lines()
-            .map(|s| s.to_string())
-            .collect::<Vec<String>>();
-        if !recs.is_empty() {
-            return Ok(recs);
-        }
-    }
-    Err(AikotError::RecipientNotFound)?
-}
-
-pub fn password_store_dir() -> Result<PathBuf, Error> {
+fn password_store_dir() -> Result<PathBuf, Error> {
     if let Some(dir) = env::var_os("PASSWORD_STORE_DIR") {
         Ok(PathBuf::from(dir))
     } else if let Some(home) = env::var_os("HOME") {
@@ -44,14 +67,6 @@ pub fn password_store_dir() -> Result<PathBuf, Error> {
             name: "HOME".to_string(),
         })?
     }
-}
-
-pub fn password_store_file(name: &str) -> Result<PathBuf, Error> {
-    let mut pbuf = password_store_dir()?;
-    let mut file = name.to_string();
-    file.push_str(".gpg");
-    pbuf.push(&file);
-    Ok(pbuf)
 }
 
 #[cfg(test)]
@@ -110,7 +125,8 @@ mod test {
     #[test]
     fn password_store_file_example_com() {
         env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
-        let result = password_store_file("example.com");
+        let aikot_env = AikotEnv::from_env().unwrap();
+        let result = aikot_env.password_store_file("example.com");
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),

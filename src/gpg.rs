@@ -4,7 +4,7 @@ use std::process::{Command, Stdio};
 
 use failure::Error;
 
-use crate::env::get_recipients;
+use crate::env::AikotEnv;
 use crate::err::AikotError;
 
 pub fn decrypt<P>(path: P) -> Result<String, Error>
@@ -21,11 +21,11 @@ where
     }
 }
 
-pub fn encrypt<P>(path: P, pass: &str) -> Result<(), Error>
+pub fn encrypt<P>(aikot_env: &AikotEnv, path: P, pass: &str) -> Result<(), Error>
 where
     P: AsRef<Path>,
 {
-    let recipients = get_recipients()?;
+    let recipients = aikot_env.get_recipients()?;
     let mut cmd = gpg_common();
     cmd.stdin(Stdio::piped())
         .arg("--encrypt")
