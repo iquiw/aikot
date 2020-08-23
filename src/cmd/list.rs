@@ -2,11 +2,10 @@ use std::path::{Path, PathBuf};
 
 use failure::Error;
 
-use crate::env::password_store_dir;
+use crate::env::AikotEnv;
 
-pub fn cmd_list(pattern: Option<&str>) -> Result<(), Error> {
-    let dir = password_store_dir()?;
-    list_dir(&dir, pattern, None)
+pub fn cmd_list(aikot_env: &AikotEnv, pattern: Option<&str>) -> Result<(), Error> {
+    list_dir(aikot_env.base_dir(), pattern, None)
 }
 
 fn list_dir<P>(dir: P, pattern: Option<&str>, prefix_opt: Option<&PathBuf>) -> Result<(), Error>
