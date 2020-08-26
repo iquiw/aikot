@@ -21,7 +21,7 @@ where
     }
 }
 
-pub fn encrypt<P>(aikot_env: &AikotEnv, path: P, pass: &str) -> Result<(), Error>
+pub fn encrypt<P>(aikot_env: &AikotEnv, path: P, contents: &str) -> Result<(), Error>
 where
     P: AsRef<Path>,
 {
@@ -35,7 +35,7 @@ where
         cmd.arg("-r").arg(recipient);
     }
     let child = cmd.spawn()?;
-    Ok(child.stdin.unwrap().write_all(pass.as_bytes())?)
+    Ok(child.stdin.unwrap().write_all(contents.as_bytes())?)
 }
 
 fn gpg_common() -> Command {

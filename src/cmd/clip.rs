@@ -8,9 +8,9 @@ use crate::gpg::decrypt;
 pub fn cmd_clip(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     let file = aikot_env.password_store_file(name)?;
     if file.is_file() {
-        let pass = decrypt(&file)?;
-        if let Some(password) = pass.lines().next() {
-            set_clip(&password)
+        let contents = decrypt(&file)?;
+        if let Some(pass) = contents.lines().next() {
+            set_clip(&pass)
         } else {
             Err(AikotError::EmptyPassword {
                 name: name.to_string(),
