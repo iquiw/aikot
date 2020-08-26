@@ -14,11 +14,24 @@ struct AikotCommand {
 #[derive(FromArgs, Debug)]
 #[argh(subcommand)]
 enum AikotSubcommand {
+    Add(AddCommand),
     Clip(ClipCommand),
     Edit(EditCommand),
     List(ListCommand),
     Pwgen(PwgenCommand),
     Show(ShowCommand),
+}
+
+#[derive(FromArgs, Debug)]
+#[argh(subcommand, name = "add", description = "Add new secret")]
+struct AddCommand {
+    #[argh(positional)]
+    name: String,
+
+    #[argh(positional, default = "24")]
+    length: usize,
+    // #[argh(option, description = "not to generate password", default = "false")]
+    // no_generate: bool,
 }
 
 #[derive(FromArgs, Debug)]
@@ -47,7 +60,11 @@ struct ListCommand {
 struct PwgenCommand {
     #[argh(positional, default = "12")]
     length: usize,
-    #[argh(option, description = "number of passwords to be generated", default = "8")]
+    #[argh(
+        option,
+        description = "number of passwords to be generated",
+        default = "8"
+    )]
     count: u16,
 }
 
@@ -72,6 +89,9 @@ fn aikot_main() -> Result<(), Error> {
     let cmd: AikotCommand = argh::from_env();
     let aikot_env = AikotEnv::from_env()?;
     match cmd.subcmd {
+        AikotSubcommand::Add(AddCommand { name, length }) => {
+            cmd::cmd_add(&aikot_env, &name, length)
+        }
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
         AikotSubcommand::List(ListCommand { pattern }) => {
