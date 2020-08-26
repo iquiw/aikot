@@ -17,6 +17,7 @@ enum AikotSubcommand {
     Clip(ClipCommand),
     Edit(EditCommand),
     List(ListCommand),
+    Pwgen(PwgenCommand),
     Show(ShowCommand),
 }
 
@@ -42,6 +43,15 @@ struct ListCommand {
 }
 
 #[derive(FromArgs, Debug)]
+#[argh(subcommand, name = "pwgen", description = "Generate passwords")]
+struct PwgenCommand {
+    #[argh(positional, default = "12")]
+    length: usize,
+    #[argh(option, description = "number of passwords to be generated", default = "8")]
+    count: u16,
+}
+
+#[derive(FromArgs, Debug)]
 #[argh(
     subcommand,
     name = "show",
@@ -54,7 +64,7 @@ struct ShowCommand {
 
 fn main() {
     if let Err(err) = aikot_main() {
-        println!("{}", err);
+        eprintln!("{}", err);
     }
 }
 
@@ -66,6 +76,9 @@ fn aikot_main() -> Result<(), Error> {
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
         AikotSubcommand::List(ListCommand { pattern }) => {
             cmd::cmd_list(&aikot_env, pattern.as_deref())
+        }
+        AikotSubcommand::Pwgen(PwgenCommand { length, count }) => {
+            cmd::cmd_pwgen(&aikot_env, length, count)
         }
         AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&aikot_env, &name),
     }

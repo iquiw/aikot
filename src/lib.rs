@@ -4,5 +4,6 @@ pub mod env;
 pub mod err;
 pub mod gpg;
 pub mod io;
+pub mod password;
 pub mod rand;
 pub mod tempfile;
