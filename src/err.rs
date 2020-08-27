@@ -23,6 +23,9 @@ pub enum AikotError {
     )]
     MinimumLength { pwclass: String, length: usize },
 
+    #[fail(display = "password file already exists: {}", name)]
+    PassAlreadyExists { name: String },
+
     #[fail(display = "password file not found: {}", name)]
     PassNotFound { name: String },
 
