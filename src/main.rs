@@ -30,8 +30,9 @@ struct AddCommand {
 
     #[argh(positional, default = "24")]
     length: usize,
-    // #[argh(option, description = "not to generate password", default = "false")]
-    // no_generate: bool,
+
+    #[argh(switch, description = "not to generate password")]
+    no_generate: bool,
 }
 
 #[derive(FromArgs, Debug)]
@@ -89,8 +90,13 @@ fn aikot_main() -> Result<(), Error> {
     let cmd: AikotCommand = argh::from_env();
     let aikot_env = AikotEnv::from_env()?;
     match cmd.subcmd {
-        AikotSubcommand::Add(AddCommand { name, length }) => {
-            cmd::cmd_add(&aikot_env, &name, length)
+        AikotSubcommand::Add(AddCommand { name, length, no_generate }) => {
+            let olength = if no_generate {
+                None
+            } else {
+                Some(length)
+            };
+            cmd::cmd_add(&aikot_env, &name, olength)
         }
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
