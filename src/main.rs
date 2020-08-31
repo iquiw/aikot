@@ -3,6 +3,7 @@ use failure::Error;
 
 use aikot::cmd;
 use aikot::env::AikotEnv;
+use aikot::password::PwGen;
 
 #[derive(FromArgs, Debug)]
 #[argh(description = "Aikot password manager")]
@@ -33,6 +34,9 @@ struct AddCommand {
 
     #[argh(switch, description = "not to generate password")]
     no_generate: bool,
+
+    #[argh(switch, description = "include symbol characters in password")]
+    symbol: bool,
 }
 
 #[derive(FromArgs, Debug)]
@@ -67,6 +71,9 @@ struct PwgenCommand {
         default = "8"
     )]
     count: u16,
+
+    #[argh(switch, description = "include symbol characters in password")]
+    symbol: bool,
 }
 
 #[derive(FromArgs, Debug)]
@@ -90,21 +97,31 @@ fn aikot_main() -> Result<(), Error> {
     let cmd: AikotCommand = argh::from_env();
     let aikot_env = AikotEnv::from_env()?;
     match cmd.subcmd {
-        AikotSubcommand::Add(AddCommand { name, length, no_generate }) => {
-            let olength = if no_generate {
+        AikotSubcommand::Add(AddCommand {
+            name,
+            length,
+            no_generate,
+            symbol,
+        }) => {
+            let opwgen = if no_generate {
                 None
             } else {
-                Some(length)
+                Some(PwGen::new(length, symbol)?)
             };
-            cmd::cmd_add(&aikot_env, &name, olength)
+            cmd::cmd_add(&aikot_env, &name, opwgen.as_ref())
         }
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
         AikotSubcommand::List(ListCommand { pattern }) => {
             cmd::cmd_list(&aikot_env, pattern.as_deref())
         }
-        AikotSubcommand::Pwgen(PwgenCommand { length, count }) => {
-            cmd::cmd_pwgen(&aikot_env, length, count)
+        AikotSubcommand::Pwgen(PwgenCommand {
+            length,
+            count,
+            symbol,
+        }) => {
+            let pwgen = PwGen::new(length, symbol)?;
+            cmd::cmd_pwgen(&aikot_env, &pwgen, count)
         }
         AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&aikot_env, &name),
     }

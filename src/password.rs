@@ -5,7 +5,68 @@ use rand;
 use rand::distributions::{Alphanumeric, Distribution};
 use rand::{thread_rng, Rng};
 
+use crate::err::AikotError;
+
+const SYMBOL_CHARS: &str = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+
 pub struct Alphanum;
+pub struct AlphanumSymbol;
+
+pub enum PwGen {
+    AN(Alphanum, usize),
+    ANS(AlphanumSymbol, usize),
+}
+
+impl PwGen {
+    pub fn new(length: usize, symbol: bool) -> Result<Self, AikotError> {
+        let pwgen = if symbol {
+            PwGen::ANS(AlphanumSymbol, length)
+        } else {
+            PwGen::AN(Alphanum, length)
+        };
+
+        let min_len = pwgen.minimum_length();
+        if length < min_len {
+            Err(AikotError::MinimumLength {
+                pwgen: format!("{}", pwgen).to_string(),
+                min_len,
+            })?
+        } else {
+            Ok(pwgen)
+        }
+    }
+
+    pub fn try_generate(&self) -> Result<String, AikotError> {
+        let opass = match self {
+            PwGen::AN(x, len) => x.try_generate(*len),
+            PwGen::ANS(x, len) => x.try_generate(*len),
+        };
+
+        if let Some(pass) = opass {
+            Ok(pass)
+        } else {
+            Err(AikotError::GenerationFail {
+                pwgen: format!("{}", self).to_string(),
+            })?
+        }
+    }
+
+    fn minimum_length(&self) -> usize {
+        match self {
+            PwGen::AN(x, _) => x.minimum_length(),
+            PwGen::ANS(x, _) => x.minimum_length(),
+        }
+    }
+}
+
+impl fmt::Display for PwGen {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            PwGen::AN(_, len) => write!(f, "length: {}, class: alphanum", len),
+            PwGen::ANS(_, len) => write!(f, "length: {}, class: alphanum+symbol", len),
+        }
+    }
+}
 
 pub trait PasswordClass: Distribution<char> {
     fn try_generate(&self, len: usize) -> Option<String>
@@ -28,12 +89,6 @@ pub trait PasswordClass: Distribution<char> {
     fn minimum_length(&self) -> usize;
 
     fn verify(&self, pass: &str) -> bool;
-}
-
-impl fmt::Display for Alphanum {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "alphanum")
-    }
 }
 
 impl Distribution<char> for Alphanum {
@@ -60,6 +115,43 @@ impl PasswordClass for Alphanum {
     }
 }
 
+impl Distribution<char> for AlphanumSymbol {
+    fn sample<R>(&self, rng: &mut R) -> char
+    where
+        R: rand::Rng + ?Sized,
+    {
+        // Derived from Alphanum code in rand/distributions/other.rs
+        const RANGE: u32 = 26 + 26 + 10 + 32;
+        const GEN_ALPHANUM_SYMBOL_CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                abcdefghijklmnopqrstuvwxyz\
+                0123456789\
+                !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+        loop {
+            let var = rng.next_u32() >> (32 - 7);
+            if var < RANGE {
+                // succeeds, 94 / 128 = 73%
+                return GEN_ALPHANUM_SYMBOL_CHARSET[var as usize] as char;
+            }
+        }
+    }
+}
+
+impl PasswordClass for AlphanumSymbol {
+    fn minimum_length(&self) -> usize {
+        4
+    }
+
+    fn verify(&self, pass: &str) -> bool {
+        let preds: Vec<Box<dyn Fn(char) -> bool>> = vec![
+            Box::new(lower_char),
+            Box::new(upper_char),
+            Box::new(number_char),
+            Box::new(symbol_char),
+        ];
+        all_predicts(&preds, pass)
+    }
+}
+
 fn lower_char(c: char) -> bool {
     c.is_lowercase()
 }
@@ -70,6 +162,10 @@ fn upper_char(c: char) -> bool {
 
 fn number_char(c: char) -> bool {
     c.is_numeric()
+}
+
+fn symbol_char(c: char) -> bool {
+    SYMBOL_CHARS.contains(c)
 }
 
 fn all_predicts<F>(preds: &Vec<F>, s: &str) -> bool
@@ -149,5 +245,27 @@ mod test {
         assert!(!Alphanum.verify("FOOBAR00"));
         assert!(!Alphanum.verify("FOObarBaZ"));
         assert!(!Alphanum.verify("0123456"));
+        assert!(!Alphanum.verify("foo!bar&"));
+    }
+
+    #[test]
+    fn test_alphanumsymbol_minimum_length() {
+        assert_eq!(AlphanumSymbol.minimum_length(), 4);
+    }
+
+    #[test]
+    fn test_alphanumsymbol_verify_pass() {
+        assert!(AlphanumSymbol.verify("fooBar00!@"));
+        assert!(AlphanumSymbol.verify("0aA#"));
+    }
+
+    #[test]
+    fn test_alphanumsymbol_verify_fail() {
+        assert!(!AlphanumSymbol.verify("fooBAR00"));
+        assert!(!AlphanumSymbol.verify("FOOBAR00*()"));
+        assert!(!AlphanumSymbol.verify("FOObarBaZ{}"));
+        assert!(!AlphanumSymbol.verify("0123456"));
+        assert!(!AlphanumSymbol.verify("foobar00"));
+        assert!(!AlphanumSymbol.verify("~!@#$%"));
     }
 }

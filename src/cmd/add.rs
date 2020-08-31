@@ -7,12 +7,10 @@ use crate::env::AikotEnv;
 use crate::err::AikotError;
 use crate::gpg::encrypt;
 use crate::io::{open_editor, read_file};
-use crate::password::{Alphanum, PasswordClass};
+use crate::password::PwGen;
 use crate::tempfile::create_temp_file;
 
-use super::pwgen::generate_one;
-
-pub fn cmd_add(aikot_env: &AikotEnv, name: &str, olength: Option<usize>) -> Result<(), Error> {
+pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Result<(), Error> {
     let pass_file = aikot_env.password_store_file(name)?;
     if pass_file.exists() {
         return Err(AikotError::PassAlreadyExists {
@@ -22,15 +20,8 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, olength: Option<usize>) -> Resu
     let dir = temp_dir();
     let (temp_path, temp_file) = create_temp_file(&dir)?;
 
-    if let Some(length) = olength {
-        let pwclass = Alphanum;
-        if length < pwclass.minimum_length() {
-            return Err(AikotError::MinimumLength {
-                pwclass: format!("{}", pwclass).to_string(),
-                length: pwclass.minimum_length(),
-            })?;
-        }
-        let pass = generate_one(&pwclass, length)?;
+    if let Some(pwgen) = opwgen {
+        let pass = pwgen.try_generate()?;
 
         let mut buf_write = BufWriter::new(temp_file);
         buf_write.write(pass.as_bytes())?;
