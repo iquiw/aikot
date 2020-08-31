@@ -7,11 +7,14 @@ use failure::Error;
 use crate::env::AikotEnv;
 use crate::err::AikotError;
 
-pub fn decrypt<P>(path: P) -> Result<String, Error>
+pub fn decrypt<P>(aikot_env: &AikotEnv, path: P) -> Result<String, Error>
 where
     P: AsRef<Path>,
 {
-    let output = gpg_common().arg("--decrypt").arg(path.as_ref()).output()?;
+    let output = gpg_common(aikot_env.gpg_path())
+        .arg("--decrypt")
+        .arg(path.as_ref())
+        .output()?;
     if output.status.success() {
         Ok(String::from_utf8(output.stdout)?)
     } else {
@@ -26,7 +29,7 @@ where
     P: AsRef<Path>,
 {
     let recipients = aikot_env.get_recipients()?;
-    let mut cmd = gpg_common();
+    let mut cmd = gpg_common(aikot_env.gpg_path());
     cmd.stdin(Stdio::piped())
         .arg("--encrypt")
         .arg("-o")
@@ -38,8 +41,8 @@ where
     Ok(child.stdin.unwrap().write_all(contents.as_bytes())?)
 }
 
-fn gpg_common() -> Command {
-    let mut cmd = Command::new("gpg");
+fn gpg_common(gpg_path: &Path) -> Command {
+    let mut cmd = Command::new(gpg_path);
     cmd.arg("--quiet")
         .arg("--yes")
         .arg("--compress-algo=none")
