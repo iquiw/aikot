@@ -9,16 +9,22 @@ use crate::io::read_file;
 
 pub struct AikotEnv {
     base_dir: PathBuf,
+    gpg_path: PathBuf,
 }
 
 impl AikotEnv {
     pub fn from_env() -> Result<Self, Error> {
         let base_dir = password_store_dir()?;
-        Ok(AikotEnv { base_dir })
+        let gpg_path = gpg_path()?;
+        Ok(AikotEnv { base_dir, gpg_path })
     }
 
     pub fn base_dir(&self) -> &Path {
         &self.base_dir
+    }
+
+    pub fn gpg_path(&self) -> &Path {
+        &self.gpg_path
     }
 
     pub fn get_recipients(&self) -> Result<Vec<String>, Error> {
@@ -45,6 +51,13 @@ impl AikotEnv {
     }
 }
 
+pub fn gpg_path() -> Result<PathBuf, Error> {
+    ["gpg", "gpg2"]
+        .iter()
+        .find_map(|s| find_executable(*s))
+        .ok_or(AikotError::GpgNotFound.into())
+}
+
 pub fn editor_cmd() -> Result<OsString, Error> {
     if let Some(editor) = env::var_os("EDITOR") {
         Ok(editor)
@@ -67,6 +80,20 @@ fn password_store_dir() -> Result<PathBuf, Error> {
             name: "HOME".to_string(),
         })?
     }
+}
+
+fn find_executable(name: &str) -> Option<PathBuf> {
+    if let Some(paths) = env::var_os("PATH") {
+        for path in env::split_paths(&paths) {
+            let mut pb = path.to_path_buf();
+            pb.push(name);
+            pb.set_extension(env::consts::EXE_EXTENSION);
+            if pb.is_file() {
+                return Some(pb);
+            }
+        }
+    }
+    None
 }
 
 #[cfg(test)]
@@ -132,5 +159,20 @@ mod test {
             result.unwrap(),
             PathBuf::from("/tmp/password-store/example.com.gpg")
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn find_executable_found() {
+        let oexe = find_executable("ls");
+        assert!(oexe.is_some());
+        assert_eq!(oexe.unwrap(), PathBuf::from("/bin/ls"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn find_executable_not_found() {
+        let oexe = find_executable("no-such-exe");
+        assert!(oexe.is_none());
     }
 }

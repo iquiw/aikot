@@ -11,6 +11,9 @@ pub enum AikotError {
     #[fail(display = "password genaration fail, {}", pwgen)]
     GenerationFail { pwgen: String },
 
+    #[fail(display = "gpg or gpg2 command not found")]
+    GpgNotFound,
+
     #[fail(display = "invalid environment: {}", name)]
     InvalidEnv { name: String },
 
