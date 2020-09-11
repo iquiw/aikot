@@ -16,7 +16,7 @@ pub fn cmd_edit(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     let mut buf_write = BufWriter::new(temp_file);
     let pass_file = aikot_env.password_store_file(name)?;
     let contents = decrypt(aikot_env, &pass_file)?;
-    buf_write.write(contents.as_bytes())?;
+    buf_write.write_all(contents.as_bytes())?;
     drop(buf_write);
 
     open_editor(temp_path.as_ref())?;

@@ -24,8 +24,8 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Resu
         let pass = pwgen.try_generate()?;
 
         let mut buf_write = BufWriter::new(temp_file);
-        buf_write.write(pass.as_bytes())?;
-        buf_write.write(b"\n")?;
+        buf_write.write_all(pass.as_bytes())?;
+        buf_write.write_all(b"\n")?;
         drop(buf_write);
     }
 
