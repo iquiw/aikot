@@ -26,6 +26,10 @@ jobs:
       - name: Build
         run: cargo build --verbose
       - name: Lint
-        run: cargo clippy
+        if: ${{ runner.os == 'Windows' }}
+        run: cargo clippy -- -D warnings -A clippy::transmute-ptr-to-ptr
+      - name: Lint
+        if: ${{ runner.os != 'Windows' }}
+        run: cargo clippy -- -D warnings
       - name: Run tests
         run: cargo test --verbose -- --test-threads=1
