@@ -14,11 +14,11 @@ pub fn cmd_clip(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
         } else {
             Err(AikotError::EmptyPassword {
                 name: name.to_string(),
-            })?
+            }.into())
         }
     } else {
         Err(AikotError::PassNotFound {
             name: name.to_string(),
-        })?
+        }.into())
     }
 }

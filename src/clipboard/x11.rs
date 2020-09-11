@@ -4,7 +4,6 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use failure::{err_msg, Error};
-use libc;
 use x11_clipboard::Clipboard;
 
 pub fn set_clip(text: &str) -> Result<(), Error> {

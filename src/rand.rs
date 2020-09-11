@@ -9,5 +9,5 @@ pub fn gen_random_alphanum(len: usize) -> String {
         .map(|()| rng.sample(Alphanumeric))
         .take(len)
         .collect();
-    return chars;
+    chars
 }

@@ -20,7 +20,7 @@ where
     } else {
         Err(AikotError::CommandFail {
             stderr: String::from_utf8(output.stderr)?,
-        })?
+        }.into())
     }
 }
 

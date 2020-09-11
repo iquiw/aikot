@@ -15,7 +15,7 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Resu
     if pass_file.exists() {
         return Err(AikotError::PassAlreadyExists {
             name: name.to_string(),
-        })?;
+        }.into());
     }
     let dir = temp_dir();
     let (temp_path, temp_file) = create_temp_file(&dir)?;
@@ -35,13 +35,13 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Resu
     if new_contents.is_empty() {
         return Err(AikotError::EmptyPassword {
             name: name.to_string(),
-        })?;
+        }.into());
     }
     // check again
     if pass_file.exists() {
         return Err(AikotError::PassAlreadyExists {
             name: name.to_string(),
-        })?;
+        }.into());
     }
     Ok(encrypt(aikot_env, &pass_file, &new_contents)?)
 }

@@ -1,7 +1,6 @@
 use std::fmt;
 use std::iter;
 
-use rand;
 use rand::distributions::{Alphanumeric, Distribution};
 use rand::{thread_rng, Rng};
 
@@ -28,9 +27,9 @@ impl PwGen {
         let min_len = pwgen.minimum_length();
         if length < min_len {
             Err(AikotError::MinimumLength {
-                pwgen: format!("{}", pwgen).to_string(),
+                pwgen: format!("{}", pwgen),
                 min_len,
-            })?
+            })
         } else {
             Ok(pwgen)
         }
@@ -46,8 +45,8 @@ impl PwGen {
             Ok(pass)
         } else {
             Err(AikotError::GenerationFail {
-                pwgen: format!("{}", self).to_string(),
-            })?
+                pwgen: format!("{}", self),
+            })
         }
     }
 
@@ -168,7 +167,7 @@ fn symbol_char(c: char) -> bool {
     SYMBOL_CHARS.contains(c)
 }
 
-fn all_predicts<F>(preds: &Vec<F>, s: &str) -> bool
+fn all_predicts<F>(preds: &[F], s: &str) -> bool
 where
     F: Fn(char) -> bool,
 {

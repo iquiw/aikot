@@ -16,7 +16,7 @@ pub fn open_editor(path: &Path) -> Result<(), Error> {
     } else {
         Err(AikotError::CommandFail {
             stderr: format!("{} exits with status: {}", editor.to_string_lossy(), status),
-        })?
+        }.into())
     }
 }
 

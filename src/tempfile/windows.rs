@@ -45,7 +45,7 @@ macro_rules! wintry {
     ( $i:ident ( $($x:expr),* ) ) => {
         let result = $i($($x),*);
         if result == 0 {
-            return Err(WinError { function: stringify!($i).to_string(), code: GetLastError() })?;
+            return Err(WinError { function: stringify!($i).to_string(), code: GetLastError() }.into());
         }
     };
 }
@@ -76,7 +76,7 @@ unsafe fn create_temp_handle(temp_path: &Path) -> Result<HANDLE, Error> {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
             code: GetLastError(),
-        })?;
+        }.into());
     }
     wintry!(GetTokenInformation(
         token_handle,
@@ -101,7 +101,7 @@ unsafe fn create_temp_handle(temp_path: &Path) -> Result<HANDLE, Error> {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
             code: GetLastError(),
-        })?;
+        }.into());
     }
     wintry!(InitializeAcl(
         dacl.cast(),
@@ -141,7 +141,7 @@ unsafe fn create_temp_handle(temp_path: &Path) -> Result<HANDLE, Error> {
         return Err(WinError {
             function: "CreateFileW".to_string(),
             code: GetLastError(),
-        })?;
+        }.into());
     }
     Ok(handle)
 }

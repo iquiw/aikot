@@ -39,7 +39,7 @@ impl AikotEnv {
                 return Ok(recs);
             }
         }
-        Err(AikotError::RecipientNotFound)?
+        Err(AikotError::RecipientNotFound.into())
     }
 
     pub fn password_store_file(&self, name: &str) -> Result<PathBuf, Error> {
@@ -55,7 +55,7 @@ pub fn gpg_path() -> Result<PathBuf, Error> {
     ["gpg", "gpg2"]
         .iter()
         .find_map(|s| find_executable(*s))
-        .ok_or(AikotError::GpgNotFound.into())
+        .ok_or_else(|| AikotError::GpgNotFound.into())
 }
 
 pub fn editor_cmd() -> Result<OsString, Error> {
@@ -64,7 +64,7 @@ pub fn editor_cmd() -> Result<OsString, Error> {
     } else {
         Err(AikotError::InvalidEnv {
             name: "EDITOR".to_string(),
-        })?
+        }.into())
     }
 }
 
@@ -78,7 +78,7 @@ fn password_store_dir() -> Result<PathBuf, Error> {
     } else {
         Err(AikotError::InvalidEnv {
             name: "HOME".to_string(),
-        })?
+        }.into())
     }
 }
 
