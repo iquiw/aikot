@@ -15,6 +15,6 @@ pub fn cmd_show(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     } else {
         Err(AikotError::PassNotFound {
             name: name.to_string(),
-        })?
+        }.into())
     }
 }

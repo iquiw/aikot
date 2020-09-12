@@ -20,10 +20,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup
+      - name: Setup Linux
         if: ${{ runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-xcb-dev libxcb-xfixes0-dev libxcb-shape0-dev
+      - name: Setup macOS
+        if: ${{ runner.os == 'macOS' }}
+        run: rustup component add clippy
       - name: Build
         run: cargo build --verbose
+      - name: Lint
+        if: ${{ runner.os == 'Windows' }}
+        run: cargo clippy -- -D warnings -A clippy::transmute-ptr-to-ptr
+      - name: Lint
+        if: ${{ runner.os != 'Windows' }}
+        run: cargo clippy -- -D warnings
       - name: Run tests
         run: cargo test --verbose -- --test-threads=1

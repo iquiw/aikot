@@ -45,7 +45,7 @@ pub fn create_temp_file(dir: &Path) -> Result<(TempPath, File), Error> {
             Err(UnixError {
                 function: "mkstemp".to_string(),
                 errno: *errno_location(),
-            })?
+            }.into())
         } else {
             let temp_path_cs = CString::from_raw(temp_path_cptr);
             let temp_path = PathBuf::from(OsStr::from_bytes(temp_path_cs.as_ref().to_bytes()));
