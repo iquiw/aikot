@@ -28,4 +28,7 @@ pub enum AikotError {
 
     #[fail(display = "recipient not found")]
     RecipientNotFound,
+
+    #[fail(display = "url field not found: {}", name)]
+    UrlNotFound { name: String },
 }

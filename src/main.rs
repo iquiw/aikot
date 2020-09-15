@@ -16,6 +16,7 @@ struct AikotCommand {
 #[argh(subcommand)]
 enum AikotSubcommand {
     Add(AddCommand),
+    Browse(BrowseCommand),
     Clip(ClipCommand),
     Edit(EditCommand),
     List(ListCommand),
@@ -37,6 +38,13 @@ struct AddCommand {
 
     #[argh(switch, description = "include symbol characters in password")]
     symbol: bool,
+}
+
+#[derive(FromArgs, Debug)]
+#[argh(subcommand, name = "browse", description = "Browse url of secret")]
+struct BrowseCommand {
+    #[argh(positional)]
+    name: String,
 }
 
 #[derive(FromArgs, Debug)]
@@ -110,6 +118,7 @@ fn aikot_main() -> Result<(), Error> {
             };
             cmd::cmd_add(&aikot_env, &name, opwgen.as_ref())
         }
+        AikotSubcommand::Browse(BrowseCommand { name }) => cmd::cmd_browse(&aikot_env, &name),
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
         AikotSubcommand::List(ListCommand { pattern }) => {
