@@ -22,6 +22,7 @@ enum AikotSubcommand {
     List(ListCommand),
     Pwgen(PwgenCommand),
     Show(ShowCommand),
+    Version(VersionCommand),
 }
 
 #[derive(FromArgs, Debug)]
@@ -95,6 +96,10 @@ struct ShowCommand {
     name: String,
 }
 
+#[derive(FromArgs, Debug)]
+#[argh(subcommand, name = "version", description = "Print the version")]
+struct VersionCommand {}
+
 fn main() {
     if let Err(err) = aikot_main() {
         eprintln!("{}", err);
@@ -133,5 +138,9 @@ fn aikot_main() -> Result<(), Error> {
             cmd::cmd_pwgen(&aikot_env, &pwgen, count)
         }
         AikotSubcommand::Show(ShowCommand { name }) => cmd::cmd_show(&aikot_env, &name),
+        AikotSubcommand::Version(_) => {
+            println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+            Ok(())
+        }
     }
 }
