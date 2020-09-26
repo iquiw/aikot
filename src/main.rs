@@ -1,5 +1,5 @@
 use argh::FromArgs;
-use failure::Error;
+use anyhow::Error;
 
 use aikot::cmd;
 use aikot::env::AikotEnv;

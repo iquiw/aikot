@@ -2,7 +2,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::AikotEnv;
 use crate::err::AikotError;

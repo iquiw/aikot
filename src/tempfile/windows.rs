@@ -8,7 +8,7 @@ use std::os::windows::io::FromRawHandle;
 use std::path::{Path, PathBuf};
 use std::ptr::null_mut;
 
-use failure::{Error, Fail};
+use anyhow::Error;
 use winapi::shared::minwindef::{DWORD, FALSE, TRUE};
 use winapi::um::errhandlingapi::GetLastError;
 use winapi::um::fileapi::{CreateFileW, CREATE_NEW};
@@ -29,7 +29,7 @@ use winapi::um::winnt::{
 use crate::rand::gen_random_alphanum;
 use crate::tempfile::common::TempPath;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, thiserror::Error)]
 struct WinError {
     function: String,
     code: DWORD,

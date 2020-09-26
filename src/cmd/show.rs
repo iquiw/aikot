@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::AikotEnv;
 use crate::err::AikotError;

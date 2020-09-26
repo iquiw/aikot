@@ -5,7 +5,7 @@ use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::io::FromRawFd;
 use std::path::{Path, PathBuf};
 
-use failure::{Error, Fail};
+use anyhow::Error;
 use libc::mkstemp;
 
 use crate::tempfile::common::TempPath;
@@ -22,7 +22,7 @@ use libc::__error as errno_location;
 #[cfg(target_os = "haiku")]
 use libc::_errnop as errno_location;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, thiserror::Error)]
 struct UnixError {
     function: String,
     errno: i32,

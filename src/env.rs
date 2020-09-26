@@ -2,7 +2,7 @@ use std::env;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::err::AikotError;
 use crate::io::read_file;

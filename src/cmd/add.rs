@@ -1,7 +1,7 @@
 use std::env::temp_dir;
 use std::io::{BufWriter, Write};
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::AikotEnv;
 use crate::err::AikotError;
