@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Error;
 
 use crate::clipboard::set_clip;
 use crate::env::AikotEnv;

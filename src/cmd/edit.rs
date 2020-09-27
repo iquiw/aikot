@@ -2,7 +2,7 @@ use std::io::{BufWriter, Write};
 
 use std::env::temp_dir;
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::AikotEnv;
 use crate::gpg::{decrypt, encrypt};

@@ -3,7 +3,7 @@ use std::process::exit;
 use std::thread::sleep;
 use std::time::Duration;
 
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Error};
 use x11_clipboard::Clipboard;
 
 pub fn set_clip(text: &str) -> Result<(), Error> {
@@ -25,7 +25,7 @@ pub fn set_clip(text: &str) -> Result<(), Error> {
 unsafe fn daemonize() -> Result<(), Error> {
     let child = libc::fork();
     if child == -1 {
-        return Err(err_msg("fork() failed"));
+        return Err(anyhow!("fork() failed"));
     } else if child > 0 {
         libc::_exit(0);
     }

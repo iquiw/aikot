@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::Path;
 use std::process::Command;
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::editor_cmd;
 use crate::err::AikotError;

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use failure::Error;
+use anyhow::Error;
 
 use crate::env::AikotEnv;
 
