@@ -23,13 +23,18 @@ impl AikotEnv {
         &self.base_dir
     }
 
+    pub fn gpg_id_path(&self) -> PathBuf {
+        let mut path = self.base_dir.to_path_buf();
+        path.push(".gpg-id");
+        path
+    }
+
     pub fn gpg_path(&self) -> &Path {
         &self.gpg_path
     }
 
     pub fn get_recipients(&self) -> Result<Vec<String>, Error> {
-        let mut path = self.base_dir.clone();
-        path.push(".gpg-id");
+        let path = self.gpg_id_path();
         if path.is_file() {
             let recs = read_file(&path)?
                 .lines()
