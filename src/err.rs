@@ -2,6 +2,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AikotError {
+    #[error("password store already initialized: {path:}")]
+    AlreadyInitialized { path: String },
+
     #[error("command execution fail: {stderr:}")]
     CommandFail { stderr: String },
 
@@ -10,6 +13,9 @@ pub enum AikotError {
 
     #[error("password genaration fail, {pwgen:}")]
     GenerationFail { pwgen: String },
+
+    #[error("gpg-id argument is required")]
+    GpgIdRequired,
 
     #[error("gpg or gpg2 command not found")]
     GpgNotFound,

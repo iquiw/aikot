@@ -1,5 +1,5 @@
-use argh::FromArgs;
 use anyhow::Error;
+use argh::FromArgs;
 
 use aikot::cmd;
 use aikot::env::AikotEnv;
@@ -19,6 +19,7 @@ enum AikotSubcommand {
     Browse(BrowseCommand),
     Clip(ClipCommand),
     Edit(EditCommand),
+    Init(InitCommand),
     List(ListCommand),
     Pwgen(PwgenCommand),
     Show(ShowCommand),
@@ -60,6 +61,17 @@ struct ClipCommand {
 struct EditCommand {
     #[argh(positional)]
     name: String,
+}
+
+#[derive(FromArgs, Debug)]
+#[argh(
+    subcommand,
+    name = "init",
+    description = "Initialize new password store"
+)]
+struct InitCommand {
+    #[argh(positional)]
+    gpg_ids: Vec<String>,
 }
 
 #[derive(FromArgs, Debug)]
@@ -126,6 +138,7 @@ fn aikot_main() -> Result<(), Error> {
         AikotSubcommand::Browse(BrowseCommand { name }) => cmd::cmd_browse(&aikot_env, &name),
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
+        AikotSubcommand::Init(InitCommand { gpg_ids }) => cmd::cmd_init(&aikot_env, &gpg_ids),
         AikotSubcommand::List(ListCommand { pattern }) => {
             cmd::cmd_list(&aikot_env, pattern.as_deref())
         }
