@@ -1,10 +1,11 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{BufWriter, Write};
 
 use anyhow::Error;
 
 use crate::env::AikotEnv;
 use crate::err::AikotError;
+use crate::io::create_directory;
 
 pub fn cmd_init(aikot_env: &AikotEnv, gpg_ids: &[String]) -> Result<(), Error> {
     if gpg_ids.is_empty() {
@@ -19,7 +20,7 @@ pub fn cmd_init(aikot_env: &AikotEnv, gpg_ids: &[String]) -> Result<(), Error> {
         .into());
     }
     if !base_dir.is_dir() {
-        fs::create_dir(base_dir)?;
+        create_directory(base_dir)?;
     }
 
     let mut w = BufWriter::new(File::create(path)?);
