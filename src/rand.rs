@@ -7,6 +7,7 @@ pub fn gen_random_alphanum(len: usize) -> String {
     let mut rng = thread_rng();
     let chars: String = iter::repeat(())
         .map(|()| rng.sample(Alphanumeric))
+        .map(char::from)
         .take(len)
         .collect();
     chars
