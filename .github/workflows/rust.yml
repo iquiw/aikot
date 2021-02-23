@@ -30,7 +30,7 @@ jobs:
         run: cargo build --verbose
       - name: Lint
         if: ${{ runner.os == 'Windows' }}
-        run: cargo clippy -- -D warnings -A clippy::transmute-ptr-to-ptr
+        run: cargo clippy -- -D warnings -A dead-code
       - name: Lint
         if: ${{ runner.os != 'Windows' }}
         run: cargo clippy -- -D warnings
