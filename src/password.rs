@@ -95,7 +95,7 @@ impl Distribution<char> for Alphanum {
     where
         R: rand::Rng + ?Sized,
     {
-        Alphanumeric.sample(rng)
+        char::from(Alphanumeric.sample(rng))
     }
 }
 
