@@ -10,4 +10,4 @@ pub use common::*;
 #[cfg(unix)]
 pub use unix::create_directory;
 #[cfg(windows)]
-pub use windows::create_directory;
+pub use self::windows::create_directory;
