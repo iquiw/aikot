@@ -1,20 +1,18 @@
 use anyhow::{anyhow, Error};
-use winrt::*;
 
-import!(
-    dependencies
-        os
-    types
-        windows::application_model::data_transfer::*
-);
+mod bindings {
+    ::windows::include_bindings!();
+}
 
-use windows::application_model::data_transfer::{Clipboard, ClipboardContentOptions, DataPackage};
+use bindings::windows::application_model::data_transfer::{
+    Clipboard, ClipboardContentOptions, DataPackage,
+};
 
 pub fn set_clip(text: &str) -> std::result::Result<(), Error> {
     set_clip_win(text).map_err(|e| anyhow!("{}", e.message()))
 }
 
-fn set_clip_win(text: &str) -> Result<()> {
+fn set_clip_win(text: &str) -> windows::Result<()> {
     let cco = ClipboardContentOptions::new()?;
     cco.set_is_allowed_in_history(false)?;
     cco.set_is_roamable(false)?;
