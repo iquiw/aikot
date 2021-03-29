@@ -17,9 +17,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.38"
+version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afddf7f520a80dbf76e6f50a35bca42a2331ef227a28b3b6dc5c2e2338d114b1"
+checksum = "28b2cd92db5cbd74e8e5028f7e27dd7aa3090e89e4f2a197cc7c8dfb69c7063b"
 
 [[package]]
 name = "argh"
@@ -101,9 +101,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.86"
+version = "0.2.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7282d924be3275cec7f6756ff4121987bc6481325397dde6ba3e7802b1a8b1c"
+checksum = "8916b1f6ca17130ec6568feccee27c156ad12037880833a3b842a823236502e7"
 
 [[package]]
 name = "log"
@@ -224,9 +224,9 @@ checksum = "1fccf17fd09e2455ea796d2ad267b64fa2c5cbd8701b2a93b555d2aa73449f7d"
 
 [[package]]
 name = "syn"
-version = "1.0.60"
+version = "1.0.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
+checksum = "6498a9efc342871f91cc2d0d694c674368b4ceb40f62b65a7a08c3792935e702"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -295,35 +295,33 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows"
-version = "0.3.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "426842497696b65fbfc575691d94ef65befb248ed1a8c4361e293c724e7ebe61"
+checksum = "e7c9ba7b7ea211e7ffe1a9b0d0261e1ab583dfb30a7d8ee03c23d412a4a1b3cd"
 dependencies = [
  "const-sha1",
  "windows_gen",
  "windows_macros",
- "windows_winmd",
 ]
 
 [[package]]
 name = "windows_gen"
-version = "0.3.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77ac8f0f06b647f42ee5459a8e1ffe41795647582c5926ec3fa363a91aad7d77"
+checksum = "9b6fc0d228755bad48bcc5b33a822ee969243b0296692a5a52030b2242783ccc"
 dependencies = [
  "proc-macro2",
  "quote",
  "squote",
  "syn",
  "windows_gen_macros",
- "windows_winmd",
 ]
 
 [[package]]
 name = "windows_gen_macros"
-version = "0.3.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23eac2169a20173b890c496f9e0e1149a92ef29fe4ba96026b72eec363b993f9"
+checksum = "60e3a40c78258e8c8ed675f287aa724d3e6d6ca60ce344671c99365ed8da7dd9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -332,36 +330,15 @@ dependencies = [
 
 [[package]]
 name = "windows_macros"
-version = "0.3.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9edc57c944eec106c7823b425ab0fd9f90163489e50a4df747f65fcf9030e1fb"
+checksum = "20ad6d2e10eb29e4e82aabe8a7c7c3404bb2d5f8c9d2d572b4c6d0e559a9cb52"
 dependencies = [
  "proc-macro2",
  "quote",
  "squote",
  "syn",
  "windows_gen",
- "windows_winmd",
-]
-
-[[package]]
-name = "windows_winmd"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16d44527d04c9713312ed598f5d6ce3c453754dbfc03ddc376615be4415ffc88"
-dependencies = [
- "windows_winmd_macros",
-]
-
-[[package]]
-name = "windows_winmd_macros"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2353f43f512938450614a176abf2b6cb31ac3b84fd71c88470fee571303e3f36"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
