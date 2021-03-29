@@ -169,9 +169,9 @@ mod test {
     #[cfg(unix)]
     #[test]
     fn find_executable_found() {
-        let oexe = find_executable("ls");
+        let oexe = find_executable("env");
         assert!(oexe.is_some());
-        assert_eq!(oexe.unwrap(), PathBuf::from("/bin/ls"));
+        assert_eq!(oexe.unwrap(), PathBuf::from("/usr/bin/env"));
     }
 
     #[cfg(unix)]
