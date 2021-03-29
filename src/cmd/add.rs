@@ -43,5 +43,5 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Resu
             name: name.to_string(),
         }.into());
     }
-    Ok(encrypt(aikot_env, &pass_file, &new_contents)?)
+    encrypt(aikot_env, &pass_file, &new_contents)
 }

@@ -12,16 +12,16 @@ pub struct Alphanum;
 pub struct AlphanumSymbol;
 
 pub enum PwGen {
-    AN(Alphanum, usize),
-    ANS(AlphanumSymbol, usize),
+    An(Alphanum, usize),
+    Ans(AlphanumSymbol, usize),
 }
 
 impl PwGen {
     pub fn new(length: usize, symbol: bool) -> Result<Self, AikotError> {
         let pwgen = if symbol {
-            PwGen::ANS(AlphanumSymbol, length)
+            PwGen::Ans(AlphanumSymbol, length)
         } else {
-            PwGen::AN(Alphanum, length)
+            PwGen::An(Alphanum, length)
         };
 
         let min_len = pwgen.minimum_length();
@@ -37,8 +37,8 @@ impl PwGen {
 
     pub fn try_generate(&self) -> Result<String, AikotError> {
         let opass = match self {
-            PwGen::AN(x, len) => x.try_generate(*len),
-            PwGen::ANS(x, len) => x.try_generate(*len),
+            PwGen::An(x, len) => x.try_generate(*len),
+            PwGen::Ans(x, len) => x.try_generate(*len),
         };
 
         if let Some(pass) = opass {
@@ -52,8 +52,8 @@ impl PwGen {
 
     fn minimum_length(&self) -> usize {
         match self {
-            PwGen::AN(x, _) => x.minimum_length(),
-            PwGen::ANS(x, _) => x.minimum_length(),
+            PwGen::An(x, _) => x.minimum_length(),
+            PwGen::Ans(x, _) => x.minimum_length(),
         }
     }
 }
@@ -61,8 +61,8 @@ impl PwGen {
 impl fmt::Display for PwGen {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PwGen::AN(_, len) => write!(f, "length: {}, class: alphanum", len),
-            PwGen::ANS(_, len) => write!(f, "length: {}, class: alphanum+symbol", len),
+            PwGen::An(_, len) => write!(f, "length: {}, class: alphanum", len),
+            PwGen::Ans(_, len) => write!(f, "length: {}, class: alphanum+symbol", len),
         }
     }
 }
