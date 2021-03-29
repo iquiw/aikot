@@ -25,5 +25,5 @@ pub fn cmd_edit(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     if contents == new_contents {
         println!("{} unchanged", name);
     }
-    Ok(encrypt(aikot_env, &pass_file, &new_contents)?)
+    encrypt(aikot_env, &pass_file, &new_contents)
 }
