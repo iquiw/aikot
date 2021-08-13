@@ -10,7 +10,7 @@ pub fn cmd_clip(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     if file.is_file() {
         let contents = decrypt(aikot_env, &file)?;
         if let Some(pass) = contents.lines().next() {
-            set_clip(&pass)
+            set_clip(pass)
         } else {
             Err(AikotError::EmptyPassword {
                 name: name.to_string(),
