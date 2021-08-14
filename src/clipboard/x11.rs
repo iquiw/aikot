@@ -4,19 +4,15 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use anyhow::{anyhow, Error};
-use x11_clipboard::Clipboard;
+use arboard::Clipboard;
 
 pub fn set_clip(text: &str) -> Result<(), Error> {
     unsafe {
         daemonize()?;
     };
 
-    let cb = Clipboard::new()?;
-    cb.store(
-        cb.setter.atoms.primary,
-        cb.setter.atoms.utf8_string,
-        text.as_bytes(),
-    )?;
+    let mut cb = Clipboard::new()?;
+    cb.set_text(text.into())?;
 
     sleep(Duration::from_secs(45));
     Ok(())
