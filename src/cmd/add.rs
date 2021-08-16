@@ -27,6 +27,8 @@ pub fn cmd_add(aikot_env: &AikotEnv, name: &str, opwgen: Option<&PwGen>) -> Resu
         buf_write.write_all(pass.as_bytes())?;
         buf_write.write_all(b"\n")?;
         drop(buf_write);
+    } else {
+        drop(temp_file);
     }
 
     open_editor(temp_path.as_ref())?;
