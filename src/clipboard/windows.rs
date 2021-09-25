@@ -1,12 +1,8 @@
 use anyhow::{anyhow, Error};
 
-mod bindings {
-    ::windows::include_bindings!();
-}
+::windows::include_bindings!();
 
-use bindings::Windows::ApplicationModel::DataTransfer::{
-    Clipboard, ClipboardContentOptions, DataPackage,
-};
+use Windows::ApplicationModel::DataTransfer::{Clipboard, ClipboardContentOptions, DataPackage};
 
 pub fn set_clip(text: &str) -> std::result::Result<(), Error> {
     set_clip_win(text).map_err(|e| anyhow!("{}", e.message()))
