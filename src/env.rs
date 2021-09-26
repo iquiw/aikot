@@ -7,6 +7,11 @@ use anyhow::Error;
 use crate::err::AikotError;
 use crate::io::read_file;
 
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum ShellType {
+    Bash,
+}
+
 pub struct AikotEnv {
     base_dir: PathBuf,
     gpg_path: PathBuf,

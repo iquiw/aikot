@@ -1,5 +1,5 @@
 use anyhow::Error;
-use argh::FromArgs;
+use argh::{FromArgValue, FromArgs};
 
 mod browser;
 mod clipboard;
@@ -29,6 +29,7 @@ enum AikotSubcommand {
     Add(AddCommand),
     Browse(BrowseCommand),
     Clip(ClipCommand),
+    Completion(CompletionCommand),
     Edit(EditCommand),
     Init(InitCommand),
     List(ListCommand),
@@ -65,6 +66,27 @@ struct BrowseCommand {
 struct ClipCommand {
     #[argh(positional)]
     name: String,
+}
+
+impl FromArgValue for ShellType {
+    fn from_arg_value(value: &str) -> Result<Self, String> {
+        if value == "bash" {
+            Ok(ShellType::Bash)
+        } else {
+            Err(format!("Unknown shell: {}", value))
+        }
+    }
+}
+
+#[derive(FromArgs, Debug)]
+#[argh(
+    subcommand,
+    name = "completion",
+    description = "Output shell completion code"
+)]
+struct CompletionCommand {
+    #[argh(positional)]
+    shell: ShellType,
 }
 
 #[derive(FromArgs, Debug)]
@@ -148,6 +170,9 @@ fn aikot_main() -> Result<(), Error> {
         }
         AikotSubcommand::Browse(BrowseCommand { name }) => cmd::cmd_browse(&aikot_env, &name),
         AikotSubcommand::Clip(ClipCommand { name }) => cmd::cmd_clip(&aikot_env, &name),
+        AikotSubcommand::Completion(CompletionCommand { shell }) => {
+            cmd::cmd_completion(&aikot_env, shell)
+        }
         AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
         AikotSubcommand::Init(InitCommand { gpg_ids }) => cmd::cmd_init(&aikot_env, &gpg_ids),
         AikotSubcommand::List(ListCommand { pattern }) => {
