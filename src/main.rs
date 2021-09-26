@@ -1,9 +1,20 @@
 use anyhow::Error;
 use argh::FromArgs;
 
-use aikot::cmd;
-use aikot::env::AikotEnv;
-use aikot::password::PwGen;
+mod browser;
+mod clipboard;
+mod cmd;
+mod env;
+mod err;
+mod gpg;
+mod io;
+mod password;
+#[cfg(windows)]
+mod rand;
+mod tempfile;
+
+use crate::env::{AikotEnv, ShellType};
+use crate::password::PwGen;
 
 #[derive(FromArgs, Debug)]
 #[argh(description = "Aikot password manager")]
