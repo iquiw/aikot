@@ -15,6 +15,7 @@ Aikot is a [password-store](https://www.passwordstore.org/) compatible password 
 | add        | SECRET [LENGTH] | Add new secret                           |
 | browse     | SECRET          | Browse url of secret                     |
 | clip       | SECRET          | Copy password to clipboard               |
+| completion | `bash`          | Output shell completion script           |
 | edit       | SECRET          | Edit secret by EDITOR                    |
 | list       | [PATTERN]       | List secrets                             |
 | pwgen      | LENGTH          | Generate passwords                       |
