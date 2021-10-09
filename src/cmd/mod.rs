@@ -10,7 +10,7 @@ mod show;
 
 pub use add::cmd_add;
 pub use browse::cmd_browse;
-pub use clip::cmd_clip;
+pub use clip::*;
 pub use completion::cmd_completion;
 pub use edit::cmd_edit;
 pub use init::cmd_init;
