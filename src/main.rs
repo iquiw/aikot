@@ -1,3 +1,6 @@
+#[cfg(windows)]
+use std::env::args;
+
 use anyhow::Error;
 use argh::{FromArgValue, FromArgs};
 
@@ -152,8 +155,14 @@ fn main() {
 }
 
 fn aikot_main() -> Result<(), Error> {
-    let cmd: AikotCommand = argh::from_env();
     let aikot_env = AikotEnv::from_env()?;
+    #[cfg(windows)]
+    if let Some(arg) = args().nth(1) {
+        if arg == "unclip" {
+            return cmd::cmd_unclip(&aikot_env);
+        }
+    }
+    let cmd: AikotCommand = argh::from_env();
     match cmd.subcmd {
         AikotSubcommand::Add(AddCommand {
             name,

@@ -1,5 +1,7 @@
 use anyhow::Error;
 
+#[cfg(windows)]
+use crate::clipboard::clear_clip;
 use crate::clipboard::set_clip;
 use crate::env::AikotEnv;
 use crate::err::AikotError;
@@ -14,11 +16,18 @@ pub fn cmd_clip(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
         } else {
             Err(AikotError::EmptyPassword {
                 name: name.to_string(),
-            }.into())
+            }
+            .into())
         }
     } else {
         Err(AikotError::PassNotFound {
             name: name.to_string(),
-        }.into())
+        }
+        .into())
     }
+}
+
+#[cfg(windows)]
+pub fn cmd_unclip(_aikot_env: &AikotEnv) -> Result<(), Error> {
+    clear_clip()
 }
