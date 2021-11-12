@@ -3,7 +3,6 @@ name = "aikot"
 version = "0.1.0"
 authors = ["Iku Iwasa <iku.iwasa@gmail.com>"]
 edition = "2018"
-build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -24,7 +23,4 @@ clipboard_macos = "0.1.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["errhandlingapi", "handleapi", "heapapi", "securitybaseapi", "winbase"] }
-windows = "0.21.0"
-
-[target.'cfg(windows)'.build-dependencies]
-windows = "0.21.0"
+windows = { version = "0.26.0", features = ["ApplicationModel_DataTransfer"] }
