@@ -24,6 +24,7 @@ pub fn cmd_edit(aikot_env: &AikotEnv, name: &str) -> Result<(), Error> {
     let new_contents = read_file(temp_path.as_ref())?;
     if contents == new_contents {
         println!("{} unchanged", name);
+        return Ok(());
     }
     encrypt(aikot_env, &pass_file, &new_contents)
 }
