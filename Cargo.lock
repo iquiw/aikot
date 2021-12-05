@@ -25,7 +25,6 @@ dependencies = [
  "libc",
  "rand",
  "thiserror",
- "winapi",
  "windows",
 ]
 

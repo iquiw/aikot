@@ -7,39 +7,39 @@ use std::path::Path;
 use std::ptr::null_mut;
 
 use anyhow::Error;
-use winapi::shared::minwindef::{DWORD, FALSE, TRUE};
-use winapi::um::errhandlingapi::GetLastError;
-use winapi::um::fileapi::{CreateDirectoryW, CreateFileW, CREATE_NEW};
-use winapi::um::handleapi::{CloseHandle, INVALID_HANDLE_VALUE};
-use winapi::um::heapapi::{GetProcessHeap, HeapAlloc, HeapFree};
-use winapi::um::minwinbase::SECURITY_ATTRIBUTES;
-use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
-use winapi::um::securitybaseapi::{
+
+use windows::Win32::Foundation::{
+    CloseHandle, GetLastError, BOOL, HANDLE, INVALID_HANDLE_VALUE, PWSTR, WIN32_ERROR,
+};
+use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
-    InitializeSecurityDescriptor, SetSecurityDescriptorDacl,
+    InitializeSecurityDescriptor, SetSecurityDescriptorDacl, TokenUser, ACCESS_ALLOWED_ACE, ACL,
+    ACL_REVISION, SECURITY_ATTRIBUTES, SECURITY_DESCRIPTOR, TOKEN_QUERY, TOKEN_USER,
 };
-use winapi::um::winnt::{
-    TokenUser, ACCESS_ALLOWED_ACE, ACL, ACL_REVISION, FILE_ATTRIBUTE_NORMAL, GENERIC_ALL,
-    GENERIC_READ, GENERIC_WRITE, HANDLE, SECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_REVISION,
-    TOKEN_QUERY, TOKEN_USER,
+use windows::Win32::Storage::FileSystem::{
+    CreateDirectoryW, CreateFileW, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, FILE_GENERIC_READ,
+    FILE_GENERIC_WRITE, FILE_SHARE_MODE,
 };
+use windows::Win32::System::Memory::{GetProcessHeap, HeapAlloc, HeapFree, HEAP_FLAGS};
+use windows::Win32::System::SystemServices::{GENERIC_ALL, SECURITY_DESCRIPTOR_REVISION};
+use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
 #[derive(Debug, thiserror::Error)]
 struct WinError {
     function: String,
-    code: DWORD,
+    code: WIN32_ERROR,
 }
 
 impl fmt::Display for WinError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}() error, code: {}", self.function, self.code)
+        write!(f, "{}() error, code: {}", self.function, self.code.0)
     }
 }
 
 macro_rules! wintry {
     ( $i:ident ( $($x:expr),* ) ) => {
         let result = $i($($x),*);
-        if result == 0 {
+        if !result.as_bool() {
             return Err(WinError { function: stringify!($i).to_string(), code: GetLastError() }.into());
         }
     };
@@ -49,16 +49,16 @@ unsafe fn with_security_attributes<F, R>(proc: F) -> Result<R, Error>
 where
     F: FnOnce(SECURITY_ATTRIBUTES) -> Result<R, Error>,
 {
-    let mut token_handle: HANDLE = null_mut();
+    let mut token_handle: HANDLE = HANDLE::default();
     wintry!(OpenProcessToken(
         GetCurrentProcess(),
         TOKEN_QUERY,
         &mut token_handle
     ));
-    let mut returned: DWORD = 0;
+    let mut returned: u32 = 0;
     GetTokenInformation(token_handle, TokenUser, null_mut(), 0, &mut returned);
 
-    let user = HeapAlloc(GetProcessHeap(), 0, returned as usize);
+    let user = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), returned as usize);
     if user.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -84,7 +84,7 @@ where
     ));
 
     let acl_size = size_of::<ACL>() + size_of::<ACCESS_ALLOWED_ACE>() + GetLengthSid(sid) as usize;
-    let dacl = HeapAlloc(GetProcessHeap(), 0, acl_size);
+    let dacl = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), acl_size);
     if dacl.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -92,47 +92,48 @@ where
         }
         .into());
     }
-    wintry!(InitializeAcl(
-        dacl.cast(),
-        acl_size as DWORD,
-        ACL_REVISION as DWORD
-    ));
+    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION.0));
 
     wintry!(AddAccessAllowedAce(
         dacl.cast(),
-        ACL_REVISION as DWORD,
+        ACL_REVISION.0,
         GENERIC_ALL,
         sid
     ));
 
-    SetSecurityDescriptorDacl(sd.as_mut_ptr().cast(), TRUE, dacl.cast(), FALSE);
+    SetSecurityDescriptorDacl(
+        sd.as_mut_ptr().cast(),
+        BOOL::from(true),
+        dacl.cast(),
+        BOOL::from(false),
+    );
 
     let sa = SECURITY_ATTRIBUTES {
-        nLength: size_of::<SECURITY_ATTRIBUTES>() as DWORD,
-        bInheritHandle: 0,
+        nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
+        bInheritHandle: BOOL::from(false),
         lpSecurityDescriptor: sd.as_mut_ptr().cast(),
     };
     let _sd = sd.assume_init();
 
     let r = proc(sa);
 
-    HeapFree(GetProcessHeap(), 0, dacl);
-    HeapFree(GetProcessHeap(), 0, user);
+    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), dacl);
+    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), user);
 
     r
 }
 
 pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
     unsafe {
-        with_security_attributes(|mut sa| {
+        with_security_attributes(|sa| {
             let handle = CreateFileW(
-                osstr_to_vecu16(path.as_os_str()).as_ptr(),
-                GENERIC_READ | GENERIC_WRITE,
-                0,
-                &mut sa,
+                PWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
+                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                FILE_SHARE_MODE(0),
+                &sa,
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
-                null_mut(),
+                HANDLE::default(),
             );
             if handle == INVALID_HANDLE_VALUE {
                 return Err(WinError {
@@ -148,9 +149,10 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
 
 pub fn create_directory(path: &Path) -> Result<(), Error> {
     unsafe {
-        with_security_attributes(|mut sa| {
-            let result = CreateDirectoryW(osstr_to_vecu16(path.as_os_str()).as_ptr(), &mut sa);
-            if result == TRUE {
+        with_security_attributes(|sa| {
+            let result =
+                CreateDirectoryW(PWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()), &sa);
+            if result.as_bool() {
                 Ok(())
             } else {
                 Err(WinError {
