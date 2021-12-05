@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Error};
 
-use windows::runtime::{Result, HSTRING};
+use windows::core::{Result, HSTRING};
 use windows::ApplicationModel::DataTransfer::{Clipboard, ClipboardContentOptions, DataPackage};
 
 pub fn set_clip(text: &str) -> std::result::Result<(), Error> {
