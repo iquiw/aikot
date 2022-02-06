@@ -18,9 +18,9 @@ use windows::Win32::Security::{
 };
 use windows::Win32::Storage::FileSystem::{
     CreateDirectoryW, CreateFileW, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, FILE_GENERIC_READ,
-    FILE_GENERIC_WRITE,
+    FILE_GENERIC_WRITE, FILE_SHARE_MODE,
 };
-use windows::Win32::System::Memory::{GetProcessHeap, HeapAlloc, HeapFree};
+use windows::Win32::System::Memory::{GetProcessHeap, HeapAlloc, HeapFree, HEAP_FLAGS};
 use windows::Win32::System::SystemServices::{GENERIC_ALL, SECURITY_DESCRIPTOR_REVISION};
 use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
@@ -32,7 +32,7 @@ struct WinError {
 
 impl fmt::Display for WinError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}() error, code: {}", self.function, self.code)
+        write!(f, "{}() error, code: {}", self.function, self.code.0)
     }
 }
 
@@ -58,7 +58,7 @@ where
     let mut returned: u32 = 0;
     GetTokenInformation(token_handle, TokenUser, null_mut(), 0, &mut returned);
 
-    let user = HeapAlloc(GetProcessHeap(), 0, returned as usize);
+    let user = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), returned as usize);
     if user.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -84,7 +84,7 @@ where
     ));
 
     let acl_size = size_of::<ACL>() + size_of::<ACCESS_ALLOWED_ACE>() + GetLengthSid(sid) as usize;
-    let dacl = HeapAlloc(GetProcessHeap(), 0, acl_size);
+    let dacl = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), acl_size);
     if dacl.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -92,11 +92,11 @@ where
         }
         .into());
     }
-    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION));
+    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION.0));
 
     wintry!(AddAccessAllowedAce(
         dacl.cast(),
-        ACL_REVISION,
+        ACL_REVISION.0,
         GENERIC_ALL,
         sid
     ));
@@ -117,8 +117,8 @@ where
 
     let r = proc(sa);
 
-    HeapFree(GetProcessHeap(), 0, dacl);
-    HeapFree(GetProcessHeap(), 0, user);
+    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), dacl);
+    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), user);
 
     r
 }
@@ -129,7 +129,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
             let handle = CreateFileW(
                 PWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
                 FILE_GENERIC_READ | FILE_GENERIC_WRITE,
-                0,
+                FILE_SHARE_MODE(0),
                 &sa,
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
