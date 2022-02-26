@@ -8,8 +8,9 @@ use std::ptr::null_mut;
 
 use anyhow::Error;
 
+use windows::core::PCWSTR;
 use windows::Win32::Foundation::{
-    CloseHandle, GetLastError, BOOL, HANDLE, INVALID_HANDLE_VALUE, PWSTR, WIN32_ERROR,
+    CloseHandle, GetLastError, BOOL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
 };
 use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
@@ -127,7 +128,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
     unsafe {
         with_security_attributes(|sa| {
             let handle = CreateFileW(
-                PWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
+                PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
                 FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                 FILE_SHARE_MODE(0),
                 &sa,
@@ -151,7 +152,7 @@ pub fn create_directory(path: &Path) -> Result<(), Error> {
     unsafe {
         with_security_attributes(|sa| {
             let result =
-                CreateDirectoryW(PWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()), &sa);
+                CreateDirectoryW(PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()), &sa);
             if result.as_bool() {
                 Ok(())
             } else {
