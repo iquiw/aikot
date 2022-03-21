@@ -22,6 +22,7 @@ dependencies = [
  "arboard",
  "argh",
  "clipboard_macos",
+ "gtmpl",
  "libc",
  "rand",
  "thiserror",
@@ -260,6 +261,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "gtmpl"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b924c0ea1149cd5cc9b208b33a4acb036ffb4b39c10048569de20616988a2b4"
+dependencies = [
+ "anyhow",
+ "gtmpl_value",
+ "lazy_static",
+ "percent-encoding",
+ "thiserror",
+]
+
+[[package]]
+name = "gtmpl_value"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d61bf6605eabca491ef6db6ed194e0aa82900ccc8bdea4c56ac277102152dd5"
+dependencies = [
+ "anyhow",
+ "thiserror",
+]
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -289,6 +313,12 @@ name = "jpeg-decoder"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229d53d58899083193af11e15917b5640cd40b29ff475a1fe4ef725deb02d0f2"
+
+[[package]]
+name = "lazy_static"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
@@ -462,6 +492,12 @@ dependencies = [
  "smallvec",
  "windows-sys",
 ]
+
+[[package]]
+name = "percent-encoding"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
 name = "png"

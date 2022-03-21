@@ -14,6 +14,7 @@ mod io;
 mod password;
 #[cfg(windows)]
 mod rand;
+mod template;
 mod tempfile;
 
 use crate::env::{AikotEnv, ShellType};

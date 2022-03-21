@@ -59,6 +59,12 @@ impl AikotEnv {
         pbuf.push(&file);
         Ok(pbuf)
     }
+
+    pub fn template_file(&self) -> PathBuf {
+        let mut pbuf = self.base_dir.clone();
+        pbuf.push(".pass-template");
+        pbuf
+    }
 }
 
 pub fn gpg_path() -> Result<PathBuf, Error> {
