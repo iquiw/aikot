@@ -15,7 +15,8 @@ use windows::Win32::Foundation::{
 use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
     InitializeSecurityDescriptor, SetSecurityDescriptorDacl, TokenUser, ACCESS_ALLOWED_ACE, ACL,
-    ACL_REVISION, SECURITY_ATTRIBUTES, SECURITY_DESCRIPTOR, TOKEN_QUERY, TOKEN_USER,
+    ACL_REVISION, PSECURITY_DESCRIPTOR, SECURITY_ATTRIBUTES, SECURITY_DESCRIPTOR, TOKEN_QUERY,
+    TOKEN_USER,
 };
 use windows::Win32::Storage::FileSystem::{
     CreateDirectoryW, CreateFileW, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, FILE_GENERIC_READ,
@@ -59,7 +60,7 @@ where
     let mut returned: u32 = 0;
     GetTokenInformation(token_handle, TokenUser, null_mut(), 0, &mut returned);
 
-    let user = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), returned as usize);
+    let user = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), returned as usize);
     if user.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -80,12 +81,12 @@ where
 
     let mut sd: MaybeUninit<SECURITY_DESCRIPTOR> = MaybeUninit::zeroed();
     wintry!(InitializeSecurityDescriptor(
-        sd.as_mut_ptr().cast(),
+        PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
         SECURITY_DESCRIPTOR_REVISION
     ));
 
     let acl_size = size_of::<ACL>() + size_of::<ACCESS_ALLOWED_ACE>() + GetLengthSid(sid) as usize;
-    let dacl = HeapAlloc(GetProcessHeap(), HEAP_FLAGS(0), acl_size);
+    let dacl = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), acl_size);
     if dacl.is_null() {
         return Err(WinError {
             function: "HeapAlloc".to_string(),
@@ -103,7 +104,7 @@ where
     ));
 
     SetSecurityDescriptorDacl(
-        sd.as_mut_ptr().cast(),
+        PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
         BOOL::from(true),
         dacl.cast(),
         BOOL::from(false),
@@ -118,8 +119,8 @@ where
 
     let r = proc(sa);
 
-    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), dacl);
-    HeapFree(GetProcessHeap(), HEAP_FLAGS(0), user);
+    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), dacl);
+    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), user);
 
     r
 }
@@ -135,7 +136,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
                 HANDLE::default(),
-            );
+            )?;
             if handle == INVALID_HANDLE_VALUE {
                 return Err(WinError {
                     function: "CreateFileW".to_string(),
