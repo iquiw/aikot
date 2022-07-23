@@ -20,8 +20,8 @@ fn set_clip_win(text: &str) -> Result<()> {
     cco.SetIsAllowedInHistory(false)?;
     cco.SetIsRoamable(false)?;
     let dp = DataPackage::new()?;
-    dp.SetText(HSTRING::from(text))?;
-    Clipboard::SetContentWithOptions(dp, cco)?;
+    dp.SetText(&HSTRING::from(text))?;
+    Clipboard::SetContentWithOptions(&dp, &cco)?;
     Clipboard::Flush()?;
     Ok(())
 }
