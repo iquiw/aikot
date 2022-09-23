@@ -23,7 +23,7 @@ arboard = "2.0.0"
 clipboard_macos = "0.1.0"
 
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.39.0", features = [
+windows = { version = "0.41.0", features = [
     "ApplicationModel_DataTransfer",
     "Win32_Foundation",
     "Win32_Security",

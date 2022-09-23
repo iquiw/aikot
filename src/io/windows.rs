@@ -4,7 +4,6 @@ use std::iter::once;
 use std::mem::{size_of, MaybeUninit};
 use std::os::windows::ffi::OsStrExt;
 use std::path::Path;
-use std::ptr::null_mut;
 
 use anyhow::Error;
 
@@ -58,7 +57,7 @@ where
         &mut token_handle
     ));
     let mut returned: u32 = 0;
-    GetTokenInformation(token_handle, TokenUser, null_mut(), 0, &mut returned);
+    GetTokenInformation(token_handle, TokenUser, None, 0, &mut returned);
 
     let user = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), returned as usize);
     if user.is_null() {
@@ -71,7 +70,7 @@ where
     wintry!(GetTokenInformation(
         token_handle,
         TokenUser,
-        user.cast(),
+        Some(user.cast()),
         returned,
         &mut returned
     ));
@@ -106,7 +105,7 @@ where
     SetSecurityDescriptorDacl(
         PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
         BOOL::from(true),
-        dacl.cast(),
+        Some(dacl.cast()),
         BOOL::from(false),
     );
 
@@ -119,8 +118,8 @@ where
 
     let r = proc(sa);
 
-    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), dacl);
-    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), user);
+    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(dacl));
+    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(user));
 
     r
 }
@@ -132,7 +131,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
                 PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
                 FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                 FILE_SHARE_MODE(0),
-                &sa,
+                Some(&sa),
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
                 HANDLE::default(),
@@ -152,8 +151,10 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
 pub fn create_directory(path: &Path) -> Result<(), Error> {
     unsafe {
         with_security_attributes(|sa| {
-            let result =
-                CreateDirectoryW(PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()), &sa);
+            let result = CreateDirectoryW(
+                PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
+                Some(&sa),
+            );
             if result.as_bool() {
                 Ok(())
             } else {
