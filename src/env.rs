@@ -7,7 +7,7 @@ use anyhow::Error;
 use crate::err::AikotError;
 use crate::io::read_file;
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum ShellType {
     Bash,
 }
