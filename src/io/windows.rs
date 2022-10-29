@@ -97,7 +97,7 @@ where
 
     wintry!(AddAccessAllowedAce(
         dacl.cast(),
-        ACL_REVISION.0,
+        ACL_REVISION,
         GENERIC_ALL,
         sid
     ));
