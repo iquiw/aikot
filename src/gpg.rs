@@ -1,3 +1,4 @@
+use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -28,17 +29,42 @@ pub fn encrypt<P>(aikot_env: &AikotEnv, path: P, contents: &str) -> Result<(), E
 where
     P: AsRef<Path>,
 {
+    let result = encrypt_internal(aikot_env, path, contents);
+    if result.is_err() {
+        eprintln!("To-be-encrypted contents:\n-----\n{}-----", contents);
+    }
+    result
+}
+
+fn encrypt_internal<P>(aikot_env: &AikotEnv, path: P, contents: &str) -> Result<(), Error>
+where
+    P: AsRef<Path>,
+{
+    if let Some(dir) = path.as_ref().parent() {
+        if !dir.exists() {
+            create_dir_all(dir)?;
+        }
+    }
     let recipients = aikot_env.get_recipients()?;
     let mut cmd = gpg_common(aikot_env.gpg_path());
     cmd.stdin(Stdio::piped())
+        .stderr(Stdio::piped())
         .arg("--encrypt")
         .arg("-o")
         .arg(path.as_ref());
     for recipient in &recipients {
         cmd.arg("-r").arg(recipient);
     }
-    let child = cmd.spawn()?;
-    Ok(child.stdin.unwrap().write_all(contents.as_bytes())?)
+    let mut child = cmd.spawn()?;
+    child.stdin.take().unwrap().write_all(contents.as_bytes())?;
+    let output = child.wait_with_output()?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(AikotError::CommandFail {
+            stderr: String::from_utf8(output.stderr)?,
+        }.into())
+    }
 }
 
 fn gpg_common(gpg_path: &Path) -> Command {
