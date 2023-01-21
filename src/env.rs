@@ -70,7 +70,7 @@ impl AikotEnv {
 pub fn gpg_path() -> Result<PathBuf, Error> {
     ["gpg", "gpg2"]
         .iter()
-        .find_map(|s| find_executable(*s))
+        .find_map(|s| find_executable(s))
         .ok_or_else(|| AikotError::GpgNotFound.into())
 }
 
