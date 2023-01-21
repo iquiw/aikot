@@ -93,7 +93,7 @@ where
         }
         .into());
     }
-    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION.0));
+    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION));
 
     wintry!(AddAccessAllowedAce(
         dacl.cast(),
