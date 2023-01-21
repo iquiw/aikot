@@ -1,3 +1,4 @@
+use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -39,6 +40,11 @@ fn encrypt_internal<P>(aikot_env: &AikotEnv, path: P, contents: &str) -> Result<
 where
     P: AsRef<Path>,
 {
+    if let Some(dir) = path.as_ref().parent() {
+        if !dir.exists() {
+            create_dir_all(dir)?;
+        }
+    }
     let recipients = aikot_env.get_recipients()?;
     let mut cmd = gpg_common(aikot_env.gpg_path());
     cmd.stdin(Stdio::piped())
