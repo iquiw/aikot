@@ -12,7 +12,7 @@ pub fn set_clip(text: &str) -> Result<(), Error> {
     };
 
     let mut cb = Clipboard::new()?;
-    cb.set_text(text.into())?;
+    cb.set_text(text)?;
 
     sleep(Duration::from_secs(45));
     Ok(())
