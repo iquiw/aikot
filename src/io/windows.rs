@@ -9,7 +9,7 @@ use anyhow::Error;
 
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{
-    CloseHandle, GetLastError, BOOL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
+    CloseHandle, GetLastError, BOOL, GENERIC_ALL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
 };
 use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
@@ -22,7 +22,7 @@ use windows::Win32::Storage::FileSystem::{
     FILE_GENERIC_WRITE, FILE_SHARE_MODE,
 };
 use windows::Win32::System::Memory::{GetProcessHeap, HeapAlloc, HeapFree, HEAP_FLAGS};
-use windows::Win32::System::SystemServices::{GENERIC_ALL, SECURITY_DESCRIPTOR_REVISION};
+use windows::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
 #[derive(Debug, thiserror::Error)]
@@ -98,7 +98,7 @@ where
     wintry!(AddAccessAllowedAce(
         dacl.cast(),
         ACL_REVISION,
-        GENERIC_ALL,
+        GENERIC_ALL.0,
         sid
     ));
 
@@ -129,7 +129,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
         with_security_attributes(|sa| {
             let handle = CreateFileW(
                 PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
-                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0,
                 FILE_SHARE_MODE(0),
                 Some(&sa),
                 CREATE_NEW,
