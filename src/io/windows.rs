@@ -40,7 +40,7 @@ impl fmt::Display for WinError {
 macro_rules! wintry {
     ( $i:ident ( $($x:expr),* ) ) => {
         let result = $i($($x),*);
-        if !result.as_bool() {
+        if result.is_err() {
             return Err(WinError { function: stringify!($i).to_string(), code: GetLastError() }.into());
         }
     };
@@ -57,7 +57,7 @@ where
         &mut token_handle
     ));
     let mut returned: u32 = 0;
-    GetTokenInformation(token_handle, TokenUser, None, 0, &mut returned);
+    let _ = GetTokenInformation(token_handle, TokenUser, None, 0, &mut returned);
 
     let user = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), returned as usize);
     if user.is_null() {
@@ -102,7 +102,7 @@ where
         sid
     ));
 
-    SetSecurityDescriptorDacl(
+    let _ = SetSecurityDescriptorDacl(
         PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
         BOOL::from(true),
         Some(dacl.cast()),
@@ -118,8 +118,8 @@ where
 
     let r = proc(sa);
 
-    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(dacl));
-    HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(user));
+    let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(dacl));
+    let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(user));
 
     r
 }
@@ -155,7 +155,7 @@ pub fn create_directory(path: &Path) -> Result<(), Error> {
                 PCWSTR(osstr_to_vecu16(path.as_os_str()).as_mut_ptr()),
                 Some(&sa),
             );
-            if result.as_bool() {
+            if result.is_ok() {
                 Ok(())
             } else {
                 Err(WinError {
