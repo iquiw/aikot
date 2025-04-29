@@ -7,9 +7,9 @@ use std::path::Path;
 
 use anyhow::Error;
 
-use windows::core::PCWSTR;
+use windows::core::{BOOL, PCWSTR};
 use windows::Win32::Foundation::{
-    CloseHandle, GetLastError, BOOL, GENERIC_ALL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
+    CloseHandle, GetLastError, GENERIC_ALL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
 };
 use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
@@ -106,9 +106,9 @@ where
 
         let _ = SetSecurityDescriptorDacl(
             PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
-            BOOL::from(true),
+            true,
             Some(dacl.cast()),
-            BOOL::from(false),
+            false,
         );
 
         let sa = SECURITY_ATTRIBUTES {
@@ -137,7 +137,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
                 Some(&sa),
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
-                HANDLE::default(),
+                None,
             )?;
             if handle == INVALID_HANDLE_VALUE {
                 return Err(WinError {
