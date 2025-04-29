@@ -80,7 +80,8 @@ pub fn editor_cmd() -> Result<OsString, Error> {
     } else {
         Err(AikotError::InvalidEnv {
             name: "EDITOR".to_string(),
-        }.into())
+        }
+        .into())
     }
 }
 
@@ -94,7 +95,8 @@ fn password_store_dir() -> Result<PathBuf, Error> {
     } else {
         Err(AikotError::InvalidEnv {
             name: "HOME".to_string(),
-        }.into())
+        }
+        .into())
     }
 }
 
@@ -119,7 +121,9 @@ mod test {
 
     #[test]
     fn editor_when_env_set() {
-        env::set_var("EDITOR", "emacs");
+        unsafe {
+            env::set_var("EDITOR", "emacs");
+        }
         let result = editor_cmd();
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), OsString::from("emacs"));
@@ -127,8 +131,11 @@ mod test {
 
     #[test]
     fn editor_when_env_not_set() {
-        env::remove_var("EDITOR");
+        unsafe {
+            env::remove_var("EDITOR");
+        }
         let result = editor_cmd();
+        print!("{:?}", result);
         assert!(result.is_err());
         assert_eq!(
             format!("{}", result.unwrap_err()),
@@ -138,7 +145,9 @@ mod test {
 
     #[test]
     fn password_store_dir_when_env_set() {
-        env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
+        unsafe {
+            env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
+        }
         let result = password_store_dir();
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), PathBuf::from("/tmp/password-store"));
@@ -146,8 +155,10 @@ mod test {
 
     #[test]
     fn password_store_dir_when_home_set() {
-        env::remove_var("PASSWORD_STORE_DIR");
-        env::set_var("HOME", "/home/foo");
+        unsafe {
+            env::remove_var("PASSWORD_STORE_DIR");
+            env::set_var("HOME", "/home/foo");
+        }
         let result = password_store_dir();
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), PathBuf::from("/home/foo/.password-store"));
@@ -155,8 +166,10 @@ mod test {
 
     #[test]
     fn password_store_dir_error_when_home_not_set() {
-        env::remove_var("PASSWORD_STORE_DIR");
-        env::remove_var("HOME");
+        unsafe {
+            env::remove_var("PASSWORD_STORE_DIR");
+            env::remove_var("HOME");
+        }
         let result = password_store_dir();
         assert!(result.is_err());
         assert_eq!(
@@ -167,7 +180,9 @@ mod test {
 
     #[test]
     fn password_store_file_example_com() {
-        env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
+        unsafe {
+            env::set_var("PASSWORD_STORE_DIR", "/tmp/password-store");
+        }
         let aikot_env = AikotEnv::from_env().unwrap();
         let result = aikot_env.password_store_file("example.com");
         assert!(result.is_ok());
