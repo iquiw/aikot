@@ -4,6 +4,9 @@ use std::env::args;
 use anyhow::Error;
 use argh::{FromArgValue, FromArgs};
 
+#[cfg(windows)]
+use windows::Win32::System::WinRT::{RoInitialize, RoUninitialize, RO_INIT_SINGLETHREADED};
+
 mod browser;
 mod clipboard;
 mod cmd;
@@ -153,8 +156,18 @@ struct ShowCommand {
 struct VersionCommand {}
 
 fn main() {
+    #[cfg(windows)]
+    unsafe {
+        let _ = RoInitialize(RO_INIT_SINGLETHREADED);
+    }
+
     if let Err(err) = aikot_main() {
         eprintln!("{}", err);
+    }
+
+    #[cfg(windows)]
+    unsafe {
+        RoUninitialize();
     }
 }
 
