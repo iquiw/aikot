@@ -7,9 +7,9 @@ use std::path::Path;
 
 use anyhow::Error;
 
-use windows::core::PCWSTR;
+use windows::core::{BOOL, PCWSTR};
 use windows::Win32::Foundation::{
-    CloseHandle, GetLastError, BOOL, GENERIC_ALL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
+    CloseHandle, GetLastError, GENERIC_ALL, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR,
 };
 use windows::Win32::Security::{
     AddAccessAllowedAce, GetLengthSid, GetTokenInformation, InitializeAcl,
@@ -50,78 +50,81 @@ unsafe fn with_security_attributes<F, R>(proc: F) -> Result<R, Error>
 where
     F: FnOnce(SECURITY_ATTRIBUTES) -> Result<R, Error>,
 {
-    let mut token_handle: HANDLE = HANDLE::default();
-    wintry!(OpenProcessToken(
-        GetCurrentProcess(),
-        TOKEN_QUERY,
-        &mut token_handle
-    ));
-    let mut returned: u32 = 0;
-    let _ = GetTokenInformation(token_handle, TokenUser, None, 0, &mut returned);
+    unsafe {
+        let mut token_handle: HANDLE = HANDLE::default();
+        wintry!(OpenProcessToken(
+            GetCurrentProcess(),
+            TOKEN_QUERY,
+            &mut token_handle
+        ));
+        let mut returned: u32 = 0;
+        let _ = GetTokenInformation(token_handle, TokenUser, None, 0, &mut returned);
 
-    let user = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), returned as usize);
-    if user.is_null() {
-        return Err(WinError {
-            function: "HeapAlloc".to_string(),
-            code: GetLastError(),
+        let user = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), returned as usize);
+        if user.is_null() {
+            return Err(WinError {
+                function: "HeapAlloc".to_string(),
+                code: GetLastError(),
+            }
+            .into());
         }
-        .into());
-    }
-    wintry!(GetTokenInformation(
-        token_handle,
-        TokenUser,
-        Some(user.cast()),
-        returned,
-        &mut returned
-    ));
-    wintry!(CloseHandle(token_handle));
+        wintry!(GetTokenInformation(
+            token_handle,
+            TokenUser,
+            Some(user.cast()),
+            returned,
+            &mut returned
+        ));
+        wintry!(CloseHandle(token_handle));
 
-    let sid = (*user.cast::<TOKEN_USER>()).User.Sid;
+        let sid = (*user.cast::<TOKEN_USER>()).User.Sid;
 
-    let mut sd: MaybeUninit<SECURITY_DESCRIPTOR> = MaybeUninit::zeroed();
-    wintry!(InitializeSecurityDescriptor(
-        PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
-        SECURITY_DESCRIPTOR_REVISION
-    ));
+        let mut sd: MaybeUninit<SECURITY_DESCRIPTOR> = MaybeUninit::zeroed();
+        wintry!(InitializeSecurityDescriptor(
+            PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
+            SECURITY_DESCRIPTOR_REVISION
+        ));
 
-    let acl_size = size_of::<ACL>() + size_of::<ACCESS_ALLOWED_ACE>() + GetLengthSid(sid) as usize;
-    let dacl = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), acl_size);
-    if dacl.is_null() {
-        return Err(WinError {
-            function: "HeapAlloc".to_string(),
-            code: GetLastError(),
+        let acl_size =
+            size_of::<ACL>() + size_of::<ACCESS_ALLOWED_ACE>() + GetLengthSid(sid) as usize;
+        let dacl = HeapAlloc(GetProcessHeap()?, HEAP_FLAGS(0), acl_size);
+        if dacl.is_null() {
+            return Err(WinError {
+                function: "HeapAlloc".to_string(),
+                code: GetLastError(),
+            }
+            .into());
         }
-        .into());
+        wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION));
+
+        wintry!(AddAccessAllowedAce(
+            dacl.cast(),
+            ACL_REVISION,
+            GENERIC_ALL.0,
+            sid
+        ));
+
+        let _ = SetSecurityDescriptorDacl(
+            PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
+            true,
+            Some(dacl.cast()),
+            false,
+        );
+
+        let sa = SECURITY_ATTRIBUTES {
+            nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
+            bInheritHandle: BOOL::from(false),
+            lpSecurityDescriptor: sd.as_mut_ptr().cast(),
+        };
+        let _sd = sd.assume_init();
+
+        let r = proc(sa);
+
+        let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(dacl));
+        let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(user));
+
+        r
     }
-    wintry!(InitializeAcl(dacl.cast(), acl_size as u32, ACL_REVISION));
-
-    wintry!(AddAccessAllowedAce(
-        dacl.cast(),
-        ACL_REVISION,
-        GENERIC_ALL.0,
-        sid
-    ));
-
-    let _ = SetSecurityDescriptorDacl(
-        PSECURITY_DESCRIPTOR(sd.as_mut_ptr().cast()),
-        BOOL::from(true),
-        Some(dacl.cast()),
-        BOOL::from(false),
-    );
-
-    let sa = SECURITY_ATTRIBUTES {
-        nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
-        bInheritHandle: BOOL::from(false),
-        lpSecurityDescriptor: sd.as_mut_ptr().cast(),
-    };
-    let _sd = sd.assume_init();
-
-    let r = proc(sa);
-
-    let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(dacl));
-    let _ = HeapFree(GetProcessHeap()?, HEAP_FLAGS(0), Some(user));
-
-    r
 }
 
 pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
@@ -134,7 +137,7 @@ pub fn create_file_handle(path: &Path) -> Result<HANDLE, Error> {
                 Some(&sa),
                 CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
-                HANDLE::default(),
+                None,
             )?;
             if handle == INVALID_HANDLE_VALUE {
                 return Err(WinError {

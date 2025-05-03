@@ -1,8 +1,9 @@
 use std::fmt;
 use std::iter;
 
-use rand::distributions::{Alphanumeric, Distribution};
-use rand::{thread_rng, Rng};
+use rand::Rng;
+use rand::distr::{Alphanumeric, Distribution};
+use rand::rngs::ThreadRng;
 
 use crate::err::AikotError;
 
@@ -72,7 +73,7 @@ pub trait PasswordClass: Distribution<char> {
     where
         Self: Sized,
     {
-        let mut rng = thread_rng();
+        let mut rng = ThreadRng::default();
         for _i in 1..100 {
             let pass: String = iter::repeat(())
                 .map(|()| rng.sample(self))

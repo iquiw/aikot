@@ -4,6 +4,9 @@ use std::env::args;
 use anyhow::Error;
 use argh::{FromArgValue, FromArgs};
 
+#[cfg(windows)]
+use windows::Win32::System::WinRT::{RoInitialize, RoUninitialize, RO_INIT_SINGLETHREADED};
+
 mod browser;
 mod clipboard;
 mod cmd;
@@ -14,8 +17,8 @@ mod io;
 mod password;
 #[cfg(windows)]
 mod rand;
-mod template;
 mod tempfile;
+mod template;
 
 use crate::env::{AikotEnv, ShellType};
 use crate::password::PwGen;
@@ -98,6 +101,9 @@ struct CompletionCommand {
 struct EditCommand {
     #[argh(positional)]
     name: String,
+
+    #[argh(switch, description = "regenerate password")]
+    regenerate: bool,
 }
 
 #[derive(FromArgs, Debug)]
@@ -150,8 +156,18 @@ struct ShowCommand {
 struct VersionCommand {}
 
 fn main() {
+    #[cfg(windows)]
+    unsafe {
+        let _ = RoInitialize(RO_INIT_SINGLETHREADED);
+    }
+
     if let Err(err) = aikot_main() {
         eprintln!("{}", err);
+    }
+
+    #[cfg(windows)]
+    unsafe {
+        RoUninitialize();
     }
 }
 
@@ -183,7 +199,9 @@ fn aikot_main() -> Result<(), Error> {
         AikotSubcommand::Completion(CompletionCommand { shell }) => {
             cmd::cmd_completion(&aikot_env, shell)
         }
-        AikotSubcommand::Edit(EditCommand { name }) => cmd::cmd_edit(&aikot_env, &name),
+        AikotSubcommand::Edit(EditCommand { name, regenerate }) => {
+            cmd::cmd_edit(&aikot_env, &name, regenerate)
+        }
         AikotSubcommand::Init(InitCommand { gpg_ids }) => cmd::cmd_init(&aikot_env, &gpg_ids),
         AikotSubcommand::List(ListCommand { pattern }) => {
             cmd::cmd_list(&aikot_env, pattern.as_deref())

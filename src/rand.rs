@@ -1,10 +1,11 @@
 use std::iter;
 
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use rand::Rng;
+use rand::distr::Alphanumeric;
+use rand::rngs::ThreadRng;
 
 pub fn gen_random_alphanum(len: usize) -> String {
-    let mut rng = thread_rng();
+    let mut rng = ThreadRng::default();
     let chars: String = iter::repeat(())
         .map(|()| rng.sample(Alphanumeric))
         .map(char::from)
